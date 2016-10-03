@@ -296,7 +296,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 
 
 			if(page_insert(e->env_pgdir, temp_addr, (void*) i , PTE_P | PTE_U | PTE_W))
-				panic(" caused by page_insert : not enough memory \n");
+				panic(" caused by page_insert \n");
 			  
 			}
 	
