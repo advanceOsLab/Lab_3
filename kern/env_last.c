@@ -115,6 +115,8 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 void
 env_init(void)
 {
+	// Set up envs array
+	// LAB 3: Your code here.
 	env_free_list = NULL; 
 	for (int i = NENV-1;    i>=0 ;    i--)
 		{
@@ -126,8 +128,7 @@ env_init(void)
 		}
 
 
-	// Set up envs array
-	// LAB 3: Your code here.
+	
 
 	// Per-CPU part of the initialization
 	env_init_percpu();
@@ -324,51 +325,9 @@ region_alloc(struct Env *e, void *va, size_t len)
 //
 // load_icode panics if it encounters problems.
 //  - How might load_icode fail?  What might be wrong with the given input?
-//
-static void
-load_icode(struct Env *e, uint8_t *binary)
-{
-	struct Proghdr *ph = NULL; 
-	struct Proghdr *eph = NULL;   
-	struct Elf* ELFHDR = (struct Elf *) binary; // ELFHDR is a pointer to the address of the binary file 
-
-	if (ELFHDR->e_magic != ELF_MAGIC)
-		panic (" incorrect ELF file ");
-        //if (ph->p_filesz > ph->p_memsz)
-		//panic (" ph->p_filesz > ph->p_memsz!!!"); 
-
-	ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);   // pointer to the start of the program header
-	// ELFHDR: the beginning of the binary file,  e_phoff : an offset from the beginning of the file to the beginning of the program header 
-
-	eph = ph + ELFHDR->e_phnum;                                       // pointer to the end of the program header , where e_phnum is the number of entries in the program header 
-	// DOES e_phentsize == sizeof(struct Proghdr ph)  // it should be, that is why the ph increases by the size of the entry 
-
-	lcr3(PADDR(e->env_pgdir));  // so the hardware or the kernel ??  knows where the page directory of the environment is 
-
-	for (; ph < eph; ph++)    // the program header incremented by the size of the program header entry each time 
-	{                                          // reading the program header 
-		if (ph->p_type == ELF_PROG_LOAD)                          // these are the sections that should be loaded into memory
-		{
-		region_alloc(e, (void*) ph->p_va , (size_t) ph->p_memsz); // allocate enough memory to store this particular segment 
-		memcpy((void *)ph->p_va,   binary+ph->p_offset,    ph->p_filesz); // copy this section to the memory you have just allocated !
-		// binary+ph->p_offset ==> gives us the address of the beginning of the first segment 
-		// p_memsz is usually larger than ph->p_filesz because the .bss section will have place in memory
-		// allocating the memory for p_memsz , but copying only ph->p_filesz , bcz the .bss section is not stored on file !
-
-		memset((void *)(ph->p_va + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz); // whatever beyond p_filesz must be initialized to zero! 
-
-		}
-	}
 
 
-	region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);  // allocate physical memory , and map it to this virtual address
-	// so the stack starts from (USTACKTOP - PGSIZE) to USTACKTOP  ,, just 1 page 
-	e->env_tf.tf_eip = ELFHDR->e_entry;    //
 
-	lcr3(PADDR(kern_pgdir));  //SHOULD WE DO THIS ONE??!!! 
-
-
-	
 
 	// Hints:
 	//  Load each program segment into virtual memory
@@ -408,6 +367,49 @@ load_icode(struct Env *e, uint8_t *binary)
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
+//
+static void
+load_icode(struct Env *e, uint8_t *binary)
+{
+	
+	
+	struct Proghdr *ph = NULL; 
+	struct Proghdr *eph = NULL;   
+	struct Elf* ELFHDR = (struct Elf *) binary; // ELFHDR is a pointer to the address of the binary file 
+
+	if (ELFHDR->e_magic != ELF_MAGIC)
+		panic (" incorrect ELF file ");
+        //if (ph->p_filesz > ph->p_memsz)
+		//panic (" ph->p_filesz > ph->p_memsz!!!"); 
+
+	ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);   // pointer to the start of the program header
+	// ELFHDR: the beginning of the binary file,  e_phoff : an offset from the beginning of the file to the beginning of the program header 
+
+	eph = ph + ELFHDR->e_phnum;        // pointer to the end of the program header , where e_phnum is the number of entries in the program header 
+
+	lcr3(PADDR(e->env_pgdir));  
+
+	for (; ph < eph; ph++)    // the program header incremented by the size of the program header entry each time 
+	{                                          // reading the program header 
+		if (ph->p_type == ELF_PROG_LOAD)                          // these are the sections that should be loaded into memory
+		{
+		region_alloc(e, (void*) ph->p_va , (size_t) ph->p_memsz); // allocate enough memory to store this particular segment 
+		memcpy((void *)ph->p_va,   binary+ph->p_offset,    ph->p_filesz); // copy this section to the memory you have just allocated !
+		memset((void *)(ph->p_va + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz); // whatever beyond p_filesz must be initialized to zero! 
+
+		}
+	}
+
+
+	region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);  // allocate physical memory , and map it to this virtual address
+	// so the stack starts from (USTACKTOP - PGSIZE) to USTACKTOP  ,, just 1 page 
+	e->env_tf.tf_eip = ELFHDR->e_entry;    //
+
+	lcr3(PADDR(kern_pgdir));  
+
+
+	
+
 }
 
 //
