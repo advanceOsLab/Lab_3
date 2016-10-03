@@ -1,0 +1,48 @@
+/home/aravind/advancedOS_labs/qemu/x86_64-softmmu/qemu-system-x86_64 -hda obj/kern/kernel.img -serial mon:stdio -gdb tcp::26000 -D qemu.log 
+6828 decimal is XXX octal!
+Physical memory: 66556K available, base = 640K, extended = 65532K
+npages:16639npages:160End:f0117970
+boot_alloc_1: f0118000
+kern_pgdir_0000:f0118000boot_alloc_2: f0119000
+kern_pgdir[PDX(UVPT)]: 0pages111111:f0119000pages :f0119000
+pagefreelist :0
+check_page_alloc() succeeded!
+check_page() succeeded!
+va: ef000000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd000 , *(p+tindex):0 
+va: ef001000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd004 , *(p+tindex):0 
+va: ef002000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd008 , *(p+tindex):0 
+va: ef003000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd00c , *(p+tindex):0 
+va: ef004000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd010 , *(p+tindex):0 
+va: ef005000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd014 , *(p+tindex):0 
+va: ef006000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd018 , *(p+tindex):0 
+va: ef007000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd01c , *(p+tindex):0 
+va: ef008000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd020 , *(p+tindex):0 
+va: ef009000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd024 , *(p+tindex):0 
+va: ef00a000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd028 , *(p+tindex):0 
+va: ef00b000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd02c , *(p+tindex):0 
+va: ef00c000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd030 , *(p+tindex):0 
+va: ef00d000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd034 , *(p+tindex):0 
+va: ef00e000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd038 , *(p+tindex):0 
+va: ef00f000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd03c , *(p+tindex):0 
+va: ef010000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd040 , *(p+tindex):0 
+va: ef011000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd044 , *(p+tindex):0 
+va: ef012000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd048 , *(p+tindex):0 
+va: ef013000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd04c , *(p+tindex):0 
+va: ef014000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd050 , *(p+tindex):0 
+va: ef015000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd054 , *(p+tindex):0 
+va: ef016000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd058 , *(p+tindex):0 
+va: ef017000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd05c , *(p+tindex):0 
+va: ef018000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd060 , *(p+tindex):0 
+va: ef019000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd064 , *(p+tindex):0 
+va: ef01a000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd068 , *(p+tindex):0 
+va: ef01b000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd06c , *(p+tindex):0 
+va: ef01c000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd070 , *(p+tindex):0 
+va: ef01d000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd074 , *(p+tindex):0 
+va: ef01e000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd078 , *(p+tindex):0 
+va: ef01f000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd07c , *(p+tindex):0 
+va: ef020000 , dindex: 3bc , pgdir[dindex]: 3fd007 , p+tindex: f03fd080 , *(p+tindex):0 
+Bootstack:f010d000,PADDR(Bootstack):10d000check_kern_pgdir() succeeded!
+check_page_installed_pgdir() succeeded!
+Welcome to the JOS kernel monitor!
+Type 'help' for a list of commands.
+K> 

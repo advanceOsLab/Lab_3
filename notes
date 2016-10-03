@@ -1,0 +1,5 @@
+	|elf header
+phoff	|
+	|program header
+
+Each segment(like data,.bss etc) have its own entry in the program header 
