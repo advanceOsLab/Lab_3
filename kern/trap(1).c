@@ -98,27 +98,27 @@ trap_init(void)
 
 
 	// LAB 3: Your code here.
-    SETGATE(idt[0], 0, GD_KT, int0, 0);
-    SETGATE(idt[1], 0, GD_KT, int1, 0);
-    SETGATE(idt[2], 0, GD_KT, int2, 0);
-    SETGATE(idt[3], 0, GD_KT, int3, 3);  // breakpoint
-    SETGATE(idt[4], 0, GD_KT, int4, 0);
-    SETGATE(idt[5], 0, GD_KT, int5, 0);
-    SETGATE(idt[6], 0, GD_KT, int6, 0);
-    SETGATE(idt[7], 0, GD_KT, int7, 0);
-    SETGATE(idt[8], 0, GD_KT, int8, 0);
-    //SETGATE(idt[9], 0, GD_KT, int9, 0);
-    SETGATE(idt[10], 0, GD_KT, int10, 0);
-    SETGATE(idt[11], 0, GD_KT, int11, 0);
-    SETGATE(idt[12], 0, GD_KT, int12, 0);
-    SETGATE(idt[13], 0, GD_KT, int13, 0);
-    SETGATE(idt[14], 0, GD_KT, int14, 0);
- //   SETGATE(idt[15], 0, GD_KT, int15, 0);
-    SETGATE(idt[16], 0, GD_KT, int16, 0);
-    SETGATE(idt[17], 0, GD_KT, int17, 0);
-    SETGATE(idt[18], 0, GD_KT, int18, 0);
-    SETGATE(idt[19], 0, GD_KT, int19, 0);
-    SETGATE(idt[19], 0, GD_KT, int48, 3);   // system call
+    SETGATE(idt[0], 1, GD_KT, int0, 0);
+    SETGATE(idt[1], 1, GD_KT, int1, 0);
+    SETGATE(idt[2], 1, GD_KT, int2, 0);
+    SETGATE(idt[3], 1, GD_KT, int3, 3);  // breakpoint
+    SETGATE(idt[4], 1, GD_KT, int4, 0);
+    SETGATE(idt[5], 1, GD_KT, int5, 0);
+    SETGATE(idt[6], 1, GD_KT, int6, 0);
+    SETGATE(idt[7], 1, GD_KT, int7, 0);
+    SETGATE(idt[8], 1, GD_KT, int8, 0);
+    //SETGATE(idt[9], 1, GD_KT, int9, 0);
+    SETGATE(idt[10], 1, GD_KT, int10, 0);
+    SETGATE(idt[11], 1, GD_KT, int11, 0);
+    SETGATE(idt[12], 1, GD_KT, int12, 0);
+    SETGATE(idt[13], 1, GD_KT, int13, 0);
+    SETGATE(idt[14], 1, GD_KT, int14, 0);
+ //   SETGATE(idt[15], 1, GD_KT, int15, 0);
+    SETGATE(idt[16], 1, GD_KT, int16, 0);
+    SETGATE(idt[17], 1, GD_KT, int17, 0);
+    SETGATE(idt[18], 1, GD_KT, int18, 0);
+    SETGATE(idt[19], 1, GD_KT, int19, 0);
+    SETGATE(idt[19], 1, GD_KT, int48, 3);   // system call
 	// Per-CPU setup 
 	trap_init_percpu();
 }
