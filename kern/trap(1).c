@@ -112,7 +112,7 @@ trap_init(void)
     SETGATE(idt[11], 0, GD_KT, int11, 0);
     SETGATE(idt[12], 0, GD_KT, int12, 0);
     SETGATE(idt[13], 0, GD_KT, int13, 0);
-    SETGATE(idt[14], 0, GD_KT, int14, 0);
+    SETGATE(idt[14], 0, GD_KT, int14, 3);
  //   SETGATE(idt[15], 0, GD_KT, int15, 0);
     SETGATE(idt[16], 0, GD_KT, int16, 0);
     SETGATE(idt[17], 0, GD_KT, int17, 0);
