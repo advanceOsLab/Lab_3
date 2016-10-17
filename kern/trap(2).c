@@ -268,7 +268,7 @@ trap(struct Trapframe *tf)
 	cprintf(" curenv && curenv->env_status = %d \n" , curenv && curenv->env_status);
 	cprintf(" curenv  = %d \n" , curenv);
 	cprintf("  curenv->env_status = %d \n" , curenv->env_status);
-	//assert(curenv && curenv->env_status == ENV_RUNNING);
+	assert(curenv && curenv->env_status == ENV_RUNNING);
 	env_run(curenv);
 }
 
