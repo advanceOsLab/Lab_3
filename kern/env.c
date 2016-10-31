@@ -118,9 +118,10 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 //
 void
 env_init(void)
-{
+{	
+	int i;
 	env_free_list = NULL; 
-	for (int i = NENV-1;    i>=0 ;    i--)
+	for (i = NENV-1;    i>=0 ;    i--)
 		{
 		envs[i].env_link = env_free_list;	
 		env_free_list = &envs[i];
@@ -179,9 +180,9 @@ env_setup_vm(struct Env *e)
 	if (!(p = page_alloc(ALLOC_ZERO)))
 		return -E_NO_MEM;
 
-	//cprintf( " p-pages     %x\n", p-pages   );
+	cprintf( " p-pages     %x\n", p-pages   );
 	e->env_pgdir = page2kva(p);   // store the pgae directory virtual address into the process structure
-	//cprintf( " e->env_pgdir     %x\n", e->env_pgdir  );
+	cprintf( " e->env_pgdir     %x\n", e->env_pgdir  );
 	//bootmapregion(e->enc_pgfir, same, PGSIZE, PADDR(e->env_pgdir), U | P)
 	
 	// Now, set e->env_pgdir and initialize the page directory.
@@ -207,8 +208,8 @@ env_setup_vm(struct Env *e)
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
-	//	cprintf( " e->env_pgdir[PDX(UVPT)]    %x\n",e->env_pgdir[PDX(UVPT)] );
-	//	cprintf( "PADDR(e->env_pgdir)     %x\n", PADDR(e->env_pgdir)  );
+		//cprintf( " e->env_pgdir[PDX(UVPT)]    %x\n",e->env_pgdir[PDX(UVPT)] );
+		//cprintf( "PADDR(e->env_pgdir)     %x\n", PADDR(e->env_pgdir)  );
 	return 0;
 }
 
@@ -301,12 +302,13 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   'va' and 'len' values that are not page-aligned.
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
+		int i;
 		size_t  end  = (size_t ) ROUNDUP(va+len, PGSIZE);
 		void    *va_r  = (void *)  ROUNDDOWN(va, PGSIZE);
 		struct PageInfo * temp_addr = NULL; 
 		//cprintf( "va     %x\n", va  );
 		//cprintf( "len    %x\n", len  );
-		for (int i=  (int) va_r ; i < end ; i= i+PGSIZE)
+		for (i=  (int) va_r ; i < end ; i= i+PGSIZE)
 			{
 			temp_addr= page_alloc(0);
 			if (!temp_addr)
@@ -387,7 +389,6 @@ load_icode(struct Env *e, uint8_t *binary)
 	region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);  // allocate physical memory , and map it to this virtual address
 	// so the stack starts from (USTACKTOP - PGSIZE) to USTACKTOP  ,, just 1 page 
 	e->env_tf.tf_eip = ELFHDR->e_entry;    //
-	cprintf(" ELFHDR->e_entry = %x \n ", ELFHDR->e_entry); 
 
 	lcr3(PADDR(kern_pgdir));  //SHOULD WE DO THIS ONE??!!! 
 
@@ -446,11 +447,11 @@ void
 env_create(uint8_t *binary, enum EnvType type)
 {
 	// LAB 3: Your code here.
-	cprintf( "env_creat() is creating an environment to run binary of address :    %x\n",binary );
+				cprintf( "binary    %x\n",binary );
 	struct Env * e; 
 	int re = env_alloc(&e, 0);
-			//cprintf( " e    %x\n", *e );
-			//cprintf( " re    %x\n",re );
+			cprintf( " e    %x\n", *e );
+			cprintf( " re    %x\n",re );
 	if (re <0)
 		panic(" couldn't allocate an evironment: %e\n", re);
 	load_icode(e, binary);
@@ -545,11 +546,10 @@ env_destroy(struct Env *e)
 void
 env_pop_tf(struct Trapframe *tf)
 {
-//<<<<<<< HEAD
 	// Record the CPU we are running on for user-space debugging
 	curenv->env_cpunum = cpunum();
 
-	__asm __volatile("movl %0,%%esp\n"                  //
+	__asm __volatile("movl %0,%%esp\n"
 		"\tpopal\n"
 		"\tpopl %%es\n"
 		"\tpopl %%ds\n"
@@ -587,8 +587,7 @@ env_run(struct Env *e)
 	//	e->env_tf to sensible values.
 
 	// LAB 3: Your code here.
-				//cprintf( " e   %x\n", e );
-	cprintf( "env_run   :    %x\n", e );
+				cprintf( " e   %x\n", e );
 	if(curenv !=e)
 	{
 	if(curenv != NULL)
