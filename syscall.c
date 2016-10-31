@@ -288,7 +288,7 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	// LAB 3: Your code here.
 
 	//panic("syscall not implemented");
-	cprintf(" the kernel syscall() has been invoked to handle a systemcall number : %d \n", syscallno);
+	//cprintf(" the kernel syscall() has been invoked to handle a systemcall number : %d \n", syscallno);
 	int ret =0; 
 	switch (syscallno) {
 
