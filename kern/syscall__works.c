@@ -18,14 +18,19 @@
 static void
 sys_cputs(const char *s, size_t len)
 {
-	//cprintf(" what are you doing here \n ");
-	//user_mem_assert(struct Env *env, const void *va, size_t len, int perm)	
-	user_mem_assert(curenv, s, len, PTE_U |PTE_P );
-
+	// Check that the user has permission to read memory [s, s+len).
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-	//cprintf(" what are you doing her??!! ");
+	char *va = (char *)s;
+	pte_t *ptep;
+	for ( ; va < s + len; va+=PGSIZE){
+		ptep = pgdir_walk(curenv->env_pgdir, (void *)va, 0);
+		if (ptep && (*ptep & PTE_P) && (*ptep & PTE_U))
+			continue;
+		env_destroy(curenv);
+		return;
+	}
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);
 }
@@ -54,30 +59,22 @@ static int
 sys_env_destroy(envid_t envid)
 {
 	int r;
-	//if (envid == curenv->env_id)|| (envide == curenv->parent_id)
-		// 	env_destroy(curenv);
 	struct Env *e;
-	//cprintf("::::::::   sys_env_destroy()\n");
 
 	if ((r = envid2env(envid, &e, 1)) < 0)
 		return r;
-
 	if (e == curenv)
-		cprintf("\n\n[%08x] exiting gracefully\n", curenv->env_id);
-
+		cprintf("[%08x] exiting gracefully\n", curenv->env_id);
 	else
 		cprintf("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
-
 	env_destroy(e);
 	return 0;
 }
 
-//<<<<<<< HEAD
 // Deschedule current environment and pick a different one to run.
 static void
 sys_yield(void)
 {
-	//cprintf(" sys_yield() in the kernel syscall\n");
 	sched_yield();
 }
 
@@ -85,9 +82,6 @@ sys_yield(void)
 // Returns envid of new environment, or < 0 on error.  Errors are:
 //	-E_NO_FREE_ENV if no free environment is available.
 //	-E_NO_MEM on memory exhaustion.
-
-
-
 
 static envid_t
 sys_exofork(void)
@@ -101,20 +95,20 @@ sys_exofork(void)
 	// LAB 4: Your code here.
 	int ret; 
 	struct Env **newenv_store;
-	struct Env *child_env;
+	struct Env *e;
 
-	envid_t parent_id =   curenv->env_id;
-	ret =  env_alloc(&child_env, parent_id); 
+	//envid_t parent_id = (envid_t) curenv;
+	ret =  env_alloc(&e, curenv->env_id); 
 	if(ret < 0)
 		return ret; 
-	child_env->env_status = ENV_NOT_RUNNABLE;
+	e->env_status = ENV_NOT_RUNNABLE;
+	//memcopy(&e->env_tf, curenv->env_tf, sizeof(e->env_tf));
+	e->env_tf = curenv->env_tf;
+	 //memmove(&newenv->env_tf, &curenv->env_tf, sizeof(struct Trapframe));
 
-	child_env->env_tf = curenv->env_tf;
-	//memmove(&child_env->env_tf, &curenv->env_tf, sizeof(struct Trapframe));
+	e->env_tf.tf_regs.reg_eax = 0;
 
-	child_env->env_tf.tf_regs.reg_eax = 0;
-
-	return child_env->env_id;
+	return e->env_id;
 	//panic("sys_exofork not implemented");
 }
 
@@ -152,15 +146,6 @@ sys_env_set_status(envid_t envid, int status)
 }
 
 
-
-
-
-
-
-
-
-
-
 // Set the page fault upcall for 'envid' by modifying the corresponding struct
 // Env's 'env_pgfault_upcall' field.  When 'envid' causes a page fault, the
 // kernel will push a fault record onto the exception stack, then branch to
@@ -169,20 +154,17 @@ sys_env_set_status(envid_t envid, int status)
 // Returns 0 on success, < 0 on error.  Errors are:
 //	-E_BAD_ENV if environment envid doesn't currently exist,
 //		or the caller doesn't have permission to change envid.
+// "have permission..." => checkperm需要为1
+// 这也是合理的，因为应该是当前进程设置自己的pgfault handler
 static int
 sys_env_set_pgfault_upcall(envid_t envid, void *func)
 {
 	// LAB 4: Your code here.
-	int ret;
 	struct Env *e;
-
-	ret = envid2env(envid, &e, 1);
-	if(ret < 0)
-		return ret; 
-	
-	 e->env_pgfault_upcall = func;
- 	 return 0;
-	//panic("sys_env_set_pgfault_upcall not implemented");
+	if (envid2env(envid, &e, 1) < 0)
+		return -E_BAD_ENV;
+	e->env_pgfault_upcall = func;
+	return 0;
 }
 
 // Allocate a page of memory and map it at 'va' with permission
@@ -201,10 +183,6 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 //	-E_INVAL if perm is inappropriate (see above).
 //	-E_NO_MEM if there's no memory to allocate the new page,
 //		or to allocate any necessary page tables.
-
-
-
-
 
 static int
 sys_page_alloc(envid_t envid, void *va, int perm)
@@ -266,6 +244,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 // Return 0 on success, < 0 on error.  Errors are:
 //	-E_BAD_ENV if srcenvid and/or dstenvid doesn't currently exist,
 //		or the caller doesn't have permission to change one of them.
+//		言下之意，caller必须对两个都有更改的权限
 //	-E_INVAL if srcva >= UTOP or srcva is not page-aligned,
 //		or dstva >= UTOP or dstva is not page-aligned.
 //	-E_INVAL is srcva is not mapped in srcenvid's address space.
@@ -355,12 +334,11 @@ return 0;
 	//panic("sys_page_unmap not implemented");
 }
 
-
-
-
 // Try to send 'value' to the target env 'envid'.
 // If srcva < UTOP, then also send page currently mapped at 'srcva',
 // so that receiver gets a duplicate mapping of the same page.
+//
+// 如果srcva >= UTOP，就只传递value, 而不repmap page, 而不是错误。
 //
 // The send fails with a return value of -E_IPC_NOT_RECV if the
 // target is not blocked, waiting for an IPC.
@@ -381,6 +359,8 @@ return 0;
 // then no page mapping is transferred, but no error occurs.
 // The ipc only happens when no errors occur.
 //
+// reciever是否需要page，是通过env->env_ipc_dstva的值来判断的
+//
 // Returns 0 on success, < 0 on error.
 // Errors are:
 //	-E_BAD_ENV if environment envid doesn't currently exist.
@@ -400,7 +380,47 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	struct Env *de;
+	pte_t *ptep;
+
+	if (envid2env(envid, &de, 0) < 0)
+		return -E_BAD_ENV;
+	// 不应出现:env_status != ENV_NOT_RUNNABLE, && env_ipc_receving为true的情况
+	// 开始由于env_run()中对进程状态修改的条件没写对，导致下面的test为true。从而有可能
+	// receiver在sender把信息发送之前就处于RUNNABLE状态，若scheduler先调度receiver, 
+	// receiver就没有收到信息。
+	if (de->env_status != ENV_NOT_RUNNABLE && de->env_ipc_recving)
+		panic("[%x]'s(ptr %p) env status: %x\n", de->env_id, de, de->env_status);
+	if (!de->env_ipc_recving)
+		return -E_IPC_NOT_RECV;
+	// 如果srcva >= UTOP，就只传递value, 而不repmap page, 而不是错误。
+	if ((uint32_t)srcva < UTOP){
+		if ((uint32_t)srcva % PGSIZE)
+			return -E_INVAL;
+		if (!((perm & PTE_U) && (perm & PTE_P)))
+			return -E_INVAL;
+		int pcheck = ~(PTE_U | PTE_P | PTE_W | PTE_AVAIL);
+		if (perm & pcheck)
+			return -E_INVAL;
+		if (!page_lookup(curenv->env_pgdir, srcva, &ptep))
+			return -E_INVAL;
+		if ((perm & PTE_W) && (*ptep & PTE_W) == 0)
+			return -E_INVAL;
+		// dstva < UTOP时，receiver才接受page mapping
+		if ((uint32_t)de->env_ipc_dstva < UTOP){
+			//很多check在ipc_try_send和sys_page_map之间是重复的.这也是为什么
+			//sys_page_map()出错了基本上就是-E_NO_MEM. 相同的检查上面都通过了
+			if (sys_page_map(0, srcva, envid, de->env_ipc_dstva, perm) < 0)
+				return -E_NO_MEM;
+		}
+	}
+	de->env_ipc_recving = false;
+	de->env_ipc_value = value;
+	de->env_ipc_from = curenv->env_id;
+	de->env_ipc_perm =  ((uint32_t)srcva < UTOP && 
+			(uint32_t) de->env_ipc_dstva < UTOP) ? perm : 0;
+	de->env_status = ENV_RUNNABLE;
+	return 0;
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -417,86 +437,76 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 static int
 sys_ipc_recv(void *dstva)
 {
+	//cprintf("entering sys_ipc_recv()\n");
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
+	if ((uint32_t)dstva < UTOP && (uint32_t)dstva % PGSIZE){
+		panic("wrong dstva in sys_ipc_recv()\n");
+		return -E_INVAL;
+	}
+	//不管是否receiver intend接受page，都赋值dstva,让sender根据dstva判断
+	//receiver是否要接受page mapping.
+	curenv->env_ipc_dstva = dstva;
+	curenv->env_ipc_recving = true;
+	curenv->env_status = ENV_NOT_RUNNABLE;
+	curenv->env_tf.tf_regs.reg_eax = 0;
+	sched_yield();
 	return 0;
 }
-//=======
-
-
-//>>>>>>> lab3
 
 // Dispatches to the correct kernel function, passing the arguments.
-
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
 {
-		
 	// Call the function corresponding to the 'syscallno' parameter.
 	// Return any appropriate return value.
 	// LAB 3: Your code here.
-
-	//panic("syscall not implemented");
-	//cprintf(" the kernel syscall() has been invoked to handle a systemcall number : %d \n", syscallno);
-	int ret =0; 
-	switch (syscallno) {
-
-	case (SYS_cputs) :
-		sys_cputs((char*) a1, (size_t) a2);
-		ret = 0; 
-	break; 
-
-	case (SYS_cgetc) :
-		ret = sys_cgetc();
-	break; 
-
-	case (SYS_getenvid) :
-		ret = (int) sys_getenvid();
-	break; 
-
-	case (SYS_env_destroy) :
-	// cprintf(" environment is gonna be destroyed bcz the user system call asked for it \n");
-	  ret = sys_env_destroy((envid_t) a1);
-	break; 
-	case (SYS_yield) :
-
-		sys_yield();
-		ret = 0;
-	break; 
-
-	case SYS_exofork:
-			ret = sys_exofork();
+	int retval = 0;
+	switch(syscallno){
+		case SYS_cputs:
+			user_mem_assert(curenv, (void *)a1, a2, PTE_U | PTE_P);
+			sys_cputs((char *)a1, a2);
+			retval = a2;
+			break;
+		case SYS_cgetc:
+			retval = sys_cgetc();
+			break;
+		case SYS_getenvid:
+			retval = sys_getenvid();
+			break;
+		case SYS_env_destroy:
+			retval = sys_env_destroy(a1);
+			break;
+		case SYS_yield:
+			sys_yield();
+			break;
+		case SYS_exofork:
+			retval = sys_exofork();
 			break;
 		case SYS_env_set_status:
-			ret = sys_env_set_status(a1, a2);
+			retval = sys_env_set_status(a1, a2);
 			break;
 		case SYS_page_map:
-			ret = sys_page_map(a1, (void *)a2, a3, (void *)a4, a5);
+			retval = sys_page_map(a1, (void *)a2, a3, (void *)a4, a5);
 			break;
 		case SYS_page_unmap:
-			ret = sys_page_unmap(a1, (void *)a2);
+			retval = sys_page_unmap(a1, (void *)a2);
 			break;
 		case SYS_page_alloc:
-			ret = sys_page_alloc(a1, (void *)a2, a3);
+			retval = sys_page_alloc(a1, (void *)a2, a3);
 			break;
 		case SYS_env_set_pgfault_upcall:
-			ret = sys_env_set_pgfault_upcall(a1, (void *)a2);
-
-	default: 
-		return -E_INVAL ;
-
-
-/////////////////////////////
-
-
-		//return -E_NO_SYS;
-
+			retval = sys_env_set_pgfault_upcall(a1, (void *)a2);
+			break;
+		case SYS_ipc_recv:
+			retval = sys_ipc_recv((void *)a1);
+			break;
+		case SYS_ipc_try_send:
+			retval = sys_ipc_try_send(a1, a2, (void *)a3, a4);
+			break;
+		default:
+			return -E_INVAL; 
+	}
+	//cprintf("syscall, number %d, retval %d\n", syscallno, retval);
+	return retval;
 }
-
-
-	
-return ret; 
-
-}
-
 

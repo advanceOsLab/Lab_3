@@ -8,7 +8,6 @@
 #include <kern/console.h>
 #include <kern/pmap.h>
 #include <kern/kclock.h>
-//<<<<<<< HEAD
 #include <kern/env.h>
 #include <kern/trap.h>
 #include <kern/sched.h>
@@ -18,11 +17,8 @@
 
 static void boot_aps(void);
 
-
+//<<<<<<< HEAD
 //=======
-/*
-<<<<<<< HEAD
-=======
 // Test the stack backtrace function (lab 1 only)
 void
 test_backtrace(int x)
@@ -31,12 +27,11 @@ test_backtrace(int x)
 	if (x > 0)
 		test_backtrace(x-1);
 	else
-		mon_backtrace(1, 0, 0);
+		mon_backtrace(10, 0, 0);
 	cprintf("leaving test_backtrace %d\n", x);
 }
->>>>>>> lab1
-*/
-//>>>>>>> lab2
+//>>>>>>> lab1
+
 void
 i386_init(void)
 {
@@ -78,10 +73,13 @@ i386_init(void)
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
-	ENV_CREATE(user_primes, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
 #endif // TEST*
 
 	// Schedule and run the first user environment!
+	//cprintf(" we have created the 3 environments \n"); 
 	sched_yield();
 }
 
@@ -136,9 +134,9 @@ mp_main(void)
 	//
 	// Your code here:
 	lock_kernel();
-	sched_yield();
 	// Remove this after you finish Exercise 4
-	for (;;);
+	sched_yield();
+	//for (;;);
 }
 
 /*
